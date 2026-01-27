@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Krt1k | Kartik Pawar</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;700;900&family=Bebas+Neue&family=Outfit:wght@400;900&family=Playfair+Display:ital,wght@1,900&family=Syne:wght@800&display=swap');
+
+        :root {
+            --bg: #000000;
+            --accent: #ffffff;
+        }
+
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            background-color: var(--bg);
+            color: var(--accent);
+            font-family: 'Space Grotesk', sans-serif;
+            overflow: hidden;
+            touch-action: pan-y;
+        }
+
+        /* Home Slide Blobs */
+        .home-bg-blobs {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            filter: blur(80px);
+            opacity: 0.6;
+        }
+        .blob {
+            position: absolute;
+            border-radius: 50%;
+            animation: fluid-move 15s infinite alternate ease-in-out;
+        }
+        @keyframes fluid-move {
+            0% { transform: translate(-10%, -10%) scale(1); background: #4c1d95; }
+            50% { transform: translate(20%, 10%) scale(1.2); background: #9a3412; }
+            100% { transform: translate(-5%, 25%) scale(0.9); background: #1e3a8a; }
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Snap Container */
+        .slides-container {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            scrollbar-width: none;
+        }
+        .slides-container::-webkit-scrollbar { display: none; }
+
+        section {
+            height: 100vh;
+            width: 100vw;
+            scroll-snap-align: start;
+            scroll-snap-stop: always;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            flex-shrink: 0;
+        }
+
+        /* Hero Text */
+        .hero-name-wrapper {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            z-index: 10;
+        }
+        .first-name {
+            font-size: clamp(4.5rem, 20vw, 16rem);
+            line-height: 0.8;
+            font-weight: 900;
+            text-transform: uppercase;
+            animation: font-swap 5s infinite;
+        }
+        .last-name {
+            font-size: clamp(1rem, 4.5vw, 3rem);
+            font-weight: 300;
+            letter-spacing: 0.8em;
+            text-transform: uppercase;
+            margin-top: 1rem;
+            opacity: 0.6;
+        }
+        @keyframes font-swap {
+            0%, 19% { font-family: 'Syne', sans-serif; }
+            20%, 39% { font-family: 'Bebas Neue', sans-serif; }
+            40%, 59% { font-family: 'Playfair Display', serif; font-style: italic; }
+            60%, 79% { font-family: 'Outfit', sans-serif; }
+            80%, 100% { font-family: 'Space Grotesk', sans-serif; }
+        }
+
+        /* Morphing Scroll Indicators */
+        .scroll-dots {
+            position: fixed;
+            right: 25px;
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            z-index: 60;
+        }
+        .dot {
+            width: 10px;
+            height: 10px;
+            background: rgba(255,255,255,0.2);
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+        }
+        .dot.circle { border-radius: 50%; }
+        .dot.square { border-radius: 0%; }
+        .dot.triangle { clip-path: polygon(50% 0%, 0% 100%, 100% 100%); }
+        .dot.hexagon { clip-path: polygon(25% 0%, 75% 0%, 100% 50%, 75% 100%, 25% 100%, 0% 50%); }
+
+        .dot.active {
+            background: #fff;
+            transform: scale(1.6);
+            box-shadow: 0 0 15px rgba(255,255,255,0.5);
+        }
+
+        /* Sidebar Categories */
+        #sidebar {
+            position: fixed;
+            top: 0;
+            left: -350px;
+            width: 320px;
+            height: 100%;
+            z-index: 100;
+            transition: left 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+            padding: 2rem;
+            display: flex;
+            flex-direction: column;
+            overflow-y: auto;
+        }
+        #sidebar.open { left: 0; }
+        .sidebar-cat { margin-bottom: 2rem; }
+        .cat-title {
+            font-size: 0.65rem;
+            font-weight: 900;
+            letter-spacing: 0.3em;
+            color: rgba(255,255,255,0.3);
+            text-transform: uppercase;
+            margin-bottom: 0.75rem;
+            display: block;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            padding-bottom: 4px;
+        }
+
+        .nav-link {
+            display: block;
+            padding: 0.5rem 0;
+            color: rgba(255,255,255,0.6);
+            text-transform: uppercase;
+            font-size: 0.8rem;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            transition: 0.2s;
+            text-align: left;
+        }
+        .nav-link:hover { color: #fff; transform: translateX(5px); }
+
+        .slide-content {
+            position: relative;
+            z-index: 10;
+            width: 100%;
+            padding: 3rem 8% 5rem 8%;
+            margin-top: auto;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.7) 40%, transparent 100%);
+        }
+
+        .project-bg {
+            position: absolute;
+            inset: 0;
+            z-index: 0;
+            background-size: cover;
+            background-position: center;
+            filter: brightness(0.5);
+            transition: transform 10s ease;
+        }
+        section:hover .project-bg { transform: scale(1.1); }
+
+        .skills-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            width: 90%;
+            max-width: 800px;
+        }
+        @media (min-width: 640px) { .skills-grid { grid-template-columns: repeat(4, 1fr); } }
+
+        .skill-item {
+            padding: 1.25rem;
+            border-radius: 12px;
+            text-align: center;
+            font-weight: 800;
+            font-size: 0.75rem;
+        }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+
+        .social-card {
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        .social-card:hover { transform: translateY(-10px); background: rgba(255,255,255,0.1); }
+    </style>
+</head>
+<body>
+
+    <!-- Header UI -->
+    <div class="fixed top-0 left-0 w-full p-6 flex justify-between items-center z-50 mix-blend-difference">
+        <button onclick="toggleSidebar()" class="w-10 h-10 glass rounded-full flex flex-col justify-center items-center gap-1.5 transition-transform active:scale-90">
+            <span class="w-4 h-0.5 bg-white"></span>
+            <span class="w-4 h-0.5 bg-white"></span>
+        </button>
+        <img src="https://img.sanishtech.com/u/bbc38af86fa30e5d665082cdd29b44ab.jpeg" class="w-10 h-10 rounded-full object-cover border border-white/10 shadow-lg">
+    </div>
+
+    <!-- Morphing Dots -->
+    <div class="scroll-dots" id="scrollDots"></div>
+
+    <!-- Categorized Sidebar -->
+    <nav id="sidebar" class="glass no-scrollbar">
+        <div class="flex justify-between items-center mb-10">
+            <span class="text-[10px] font-black tracking-widest text-white/50">KRT1K VERSE</span>
+            <button onclick="toggleSidebar()"><i data-lucide="x" class="w-5 h-5 text-white/40"></i></button>
+        </div>
+
+        <div class="sidebar-cat">
+            <span class="cat-title">00 Identity</span>
+            <button onclick="navTo(0)" class="nav-link">Home</button>
+            <button onclick="navTo(1)" class="nav-link">Skills Table</button>
+        </div>
+
+        <div class="sidebar-cat">
+            <span class="cat-title">01 Apps</span>
+            <button onclick="navTo(2)" class="nav-link">HiveBrainAI</button>
+            <button onclick="navTo(3)" class="nav-link">QuoCraft</button>
+            <button onclick="navTo(4)" class="nav-link">VOXYBuild</button>
+            <button onclick="navTo(5)" class="nav-link">HandAnimations</button>
+        </div>
+
+        <div class="sidebar-cat">
+            <span class="cat-title">02 Design</span>
+            <button onclick="navTo(6)" class="nav-link">Blender Creations</button>
+        </div>
+
+        <div class="sidebar-cat">
+            <span class="cat-title">03 Gaming</span>
+            <button onclick="navTo(7)" class="nav-link">TyreTrails</button>
+            <button onclick="navTo(8)" class="nav-link">Venges Arena</button>
+        </div>
+
+        <div class="sidebar-cat">
+            <span class="cat-title">04 Content</span>
+            <button onclick="navTo(9)" class="nav-link">Krt1k.labs</button>
+            <button onclick="navTo(10)" class="nav-link">Connect</button>
+        </div>
+    </nav>
+
+    <div class="slides-container" id="scroller">
+        
+        <!-- SECTION 0: HOME -->
+        <section data-cat="identity">
+            <div class="home-bg-blobs">
+                <div class="blob w-[70vw] h-[70vw] top-[-10%] left-[-10%]"></div>
+                <div class="blob w-[60vw] h-[60vw] bottom-[-20%] right-[-10%]" style="animation-delay: -5s;"></div>
+            </div>
+            <div class="hero-name-wrapper">
+                <h1 class="first-name">Kartik</h1>
+                <span class="last-name">Pawar</span>
+            </div>
+        </section>
+
+        <!-- SECTION 1: SKILLS -->
+        <section data-cat="identity" class="justify-center items-center px-6">
+            <div class="text-center mb-10">
+                <h2 class="text-4xl font-black">Skills Table</h2>
+            </div>
+            <div class="skills-grid">
+                <div class="skill-item glass">Python</div>
+                <div class="skill-item glass">Blender</div>
+                <div class="skill-item glass">UPBGE</div>
+                <div class="skill-item glass">Roblox</div>
+                <div class="skill-item glass">GDevelop</div>
+                <div class="skill-item glass">Ursina</div>
+                <div class="skill-item glass">MIT AI2</div>
+                <div class="skill-item glass">Office</div>
+            </div>
+        </section>
+
+        <!-- APPS CATEGORY -->
+        <section data-cat="apps">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/52145a1f4297fde6274eddddc7406923.jpeg');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">HiveBrainAI</h2>
+                <button onclick="openLink('https://krt1k13.github.io/HiveBrainAI/', 'HiveBrain AI')" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase hover:bg-white hover:text-black transition-all">Launch Web App</button>
+            </div>
+        </section>
+
+        <section data-cat="apps">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/2920a2e676b078d3a5210a2d92ec09a7.jpeg');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">QuoCraft</h2>
+                <button onclick="openLink('https://quocraft.lovable.app/', 'QuoCraft')" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase hover:bg-white hover:text-black transition-all">Visit App</button>
+            </div>
+        </section>
+
+        <section data-cat="apps">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/bd8fd5c355aea2f12e86563a3a8c3f5e.jpeg');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">VOXYBuild</h2>
+                <button onclick="openLink('https://voxybuild.lovable.app/', 'VOXYBuild')" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase hover:bg-white hover:text-black transition-all">Build Now</button>
+            </div>
+        </section>
+
+        <section data-cat="apps">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/a2664781c6c77da3075fff759609574c.jpeg');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">HandAnimations</h2>
+                <button onclick="openLink('https://krt1k13.github.io/Handanimations/', 'Hand Animations')" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase hover:bg-white hover:text-black transition-all">Experience</button>
+            </div>
+        </section>
+
+        <!-- DESIGN CATEGORY -->
+        <section data-cat="design">
+            <div class="project-bg" style="background: #111;"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">Blender Creations</h2>
+                <div class="flex gap-4 overflow-x-auto pb-4 no-scrollbar">
+                    <div class="min-w-[200px] aspect-[9/16] glass rounded-xl overflow-hidden"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/ntEYR7Xwcqo" frameborder="0"></iframe></div>
+                    <div class="min-w-[200px] aspect-[9/16] glass rounded-xl overflow-hidden"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/4FDqDZi5x3U" frameborder="0"></iframe></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- GAMING CATEGORY -->
+        <section data-cat="games">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/f6c38730ecebd17792d9848d200ad651.png');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">TyreTrails</h2>
+                <a href="https://www.roblox.com/games/1766226982281" target="_blank" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase inline-block">Play Game</a>
+            </div>
+        </section>
+
+        <section data-cat="games">
+            <div class="project-bg" style="background-image: url('https://img.sanishtech.com/u/65456efdd24ff8ca350e15e9cc34dc5a.png');"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">Venges Arena</h2>
+                <a href="https://www.roblox.com/share?code=fa3f2ea907e297468c3b56b511982c7a&type=ExperienceDetails" target="_blank" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase inline-block">Enter Arena</a>
+            </div>
+        </section>
+
+        <!-- CONTENT CATEGORY -->
+        <section data-cat="content">
+            <div class="project-bg" style="background: linear-gradient(to bottom, #450a0a, #000);"></div>
+            <div class="slide-content">
+                <h2 class="text-5xl font-black mb-6">Krt1k.labs</h2>
+                <div class="aspect-video w-full max-w-2xl rounded-xl overflow-hidden mb-6"><iframe width="100%" height="100%" src="https://www.youtube.com/embed/_uK7MEewMKI" frameborder="0"></iframe></div>
+                <a href="https://youtube.com/@Krt1k.labs" target="_blank" class="glass px-8 py-3 rounded-lg font-bold text-xs uppercase inline-block">Subscribe</a>
+            </div>
+        </section>
+
+        <!-- CONNECT PANEL -->
+        <section data-cat="content" class="justify-center items-center px-6">
+            <div class="text-center mb-12">
+                <h2 class="text-4xl font-black">Connect With Me</h2>
+            </div>
+            <div class="grid grid-cols-2 gap-4 w-full max-w-lg">
+                <a href="https://www.instagram.com/krt1k.lite?igsh=ZmV6ZndjdXNveDU2&utm_source=qr" target="_blank" class="social-card glass p-6 flex flex-col items-center gap-3 rounded-2xl">
+                    <i data-lucide="instagram" class="w-8 h-8 text-pink-500"></i>
+                    <span class="text-[10px] font-black tracking-widest">INSTAGRAM</span>
+                </a>
+                <a href="https://github.com/krt1k13" target="_blank" class="social-card glass p-6 flex flex-col items-center gap-3 rounded-2xl">
+                    <i data-lucide="github" class="w-8 h-8"></i>
+                    <span class="text-[10px] font-black tracking-widest">GITHUB</span>
+                </a>
+                <a href="https://discord.gg/krt1k-verse" target="_blank" class="social-card glass p-6 flex flex-col items-center gap-3 rounded-2xl">
+                    <i data-lucide="message-square" class="w-8 h-8 text-indigo-400"></i>
+                    <span class="text-[10px] font-black tracking-widest">DISCORD</span>
+                </a>
+                <a href="https://youtube.com/@Krt1k.labs" target="_blank" class="social-card glass p-6 flex flex-col items-center gap-3 rounded-2xl">
+                    <i data-lucide="youtube" class="w-8 h-8 text-red-600"></i>
+                    <span class="text-[10px] font-black tracking-widest">YOUTUBE</span>
+                </a>
+            </div>
+        </section>
+    </div>
+
+    <!-- Modal -->
+    <div id="modalOverlay" class="fixed inset-0 z-[200] glass hidden flex-col">
+        <div class="p-4 flex justify-between items-center bg-black/90">
+            <span id="modalTitle" class="text-[10px] font-black tracking-widest uppercase text-white/40">Preview</span>
+            <button onclick="closeModal()"><i data-lucide="x" class="w-5 h-5"></i></button>
+        </div>
+        <iframe id="modalIframe" class="flex-grow w-full border-none bg-white"></iframe>
+    </div>
+
+    <script>
+        lucide.createIcons();
+        const scroller = document.getElementById('scroller');
+        const sections = document.querySelectorAll('section');
+        const dotsContainer = document.getElementById('scrollDots');
+
+        const catShapes = {
+            'identity': 'circle',
+            'apps': 'square',
+            'design': 'hexagon',
+            'games': 'triangle',
+            'content': 'circle'
+        };
+
+        sections.forEach((sec, i) => {
+            const cat = sec.getAttribute('data-cat');
+            const dot = document.createElement('div');
+            dot.className = `dot ${catShapes[cat] || 'circle'} ${i === 0 ? 'active' : ''}`;
+            dot.onclick = () => navTo(i);
+            dotsContainer.appendChild(dot);
+        });
+
+        const dots = document.querySelectorAll('.dot');
+
+        scroller.addEventListener('scroll', () => {
+            const index = Math.round(scroller.scrollTop / window.innerHeight);
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === index);
+            });
+        });
+
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        function navTo(index) {
+            if (document.getElementById('sidebar').classList.contains('open')) {
+                toggleSidebar();
+            }
+            scroller.scrollTo({
+                top: index * window.innerHeight,
+                behavior: 'smooth'
+            });
+        }
+
+        function openLink(url, title) {
+            document.getElementById('modalTitle').textContent = title;
+            document.getElementById('modalIframe').src = url;
+            document.getElementById('modalOverlay').classList.remove('hidden');
+            document.getElementById('modalOverlay').classList.add('flex');
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.add('hidden');
+            document.getElementById('modalOverlay').classList.remove('flex');
+            document.getElementById('modalIframe').src = '';
+        }
+
+        window.addEventListener('click', (e) => {
+            const sidebar = document.getElementById('sidebar');
+            if (sidebar.classList.contains('open') && !sidebar.contains(e.target) && !e.target.closest('button')) {
+                toggleSidebar();
+            }
+        });
+    </script>
+</body>
+</html>
+
+
